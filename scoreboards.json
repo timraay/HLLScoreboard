@@ -1,0 +1,22 @@
+{
+    "scoreboards": [
+        {
+            "url": "http://62.171.172.221:8040/api/",
+            "scoreboard_url": "http://62.171.172.221:7040/#/gamescoreboard",
+            "guild_id": 695232527123742742,
+            "channel_id": 790967581396828190,
+            "message_id": 838717841783521300,
+            "name": "[WTH] Public Server 1 [TEST]",
+            "server_filter": 1
+        },
+        {
+            "url": "http://62.171.172.221:8041/api/",
+            "scoreboard_url": "http://62.171.172.221:7041/#/gamescoreboard",
+            "guild_id": 695232527123742742,
+            "channel_id": 790967581396828190,
+            "message_id": 843466444590940180,
+            "name": "[WTH] Public Server 2 [TEST]",
+            "server_filter": 2
+        }
+    ]
+}
