@@ -1,8 +1,10 @@
 from datetime import timedelta
+
+from discord.ext.commands.errors import BadArgument
 from models import DBConnection
 import discord
 from discord.ext import commands
-from utils import ask_message
+from utils import ask_message, ask_reaction
 import aiohttp
 
 class ui(commands.Cog):
@@ -12,7 +14,7 @@ class ui(commands.Cog):
     @commands.command(name='list', aliases=['scoreboards', 'sbs', 'list_scoreboards'])
     async def list_scoreboards(self, ctx):
         embed = discord.Embed()
-        sbs = [sb for sb in self.bot.scoreboards if sb.guild_id == ctx.guild.id]
+        sbs = [sb for sb in self.bot.scoreboards if sb.guild.id == ctx.guild.id]
         
         if sbs:
             
@@ -21,16 +23,16 @@ class ui(commands.Cog):
             
             for i, sb in enumerate(sbs):
 
-                channel = ctx.guild.get_channel(sb.channel_id)
-                if channel: channel = channel.mention
+                channel = sb.channel
+                if channel: channel = "in " + channel.mention
                 else: channel = "No channel ⚠️"
                 
-                try: message = await commands.MessageConverter().convert(ctx, f'{sbs.channel_id}-{sbs.message_id}')
-                except commands.BadArgument: message = None
+                message = sb.message
                 if message: jump = f"[Jump to message]({message.jump_url})"
                 else: jump = "No message ⚠️"
                 
-                embed.description += f'**#{str(i+1)}** | {sb.name} ({channel}) - \n{jump} - ID: `{sbs.message_id}`'
+                tab = " ".join(["\u200E"]*6)
+                embed.description += f'**#{str(i+1)}** | {sb.name} (`{sb._message_id}`)\n{tab} | {channel} -> {jump}'
 
         else:
             embed.title = "This guild doesn't have any scoreboards yet!"
@@ -70,18 +72,19 @@ class ui(commands.Cog):
         elif channel_id.lower() == "cancel": return
         async def validate_channel_id(channel_id):
             try: channel = await commands.TextChannelConverter().convert(ctx, channel_id)
-            except commands.BadArgument as e: error = str(e)
+            except commands.BadArgument as e: return str(e), None
             if not channel.permissions_for(ctx.guild.me).send_messages:
-                return 'Can not send messages in that channel'
+                return 'Can not send messages in that channel', None
             channel_id = channel.id
-        error = await validate_channel_id(channel_id)
+            return None, channel_id
+        error, channel_id = await validate_channel_id(channel_id)
         while error is not None:
             embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
             embed.set_author(name=error)
             channel_id = await ask_message(ctx, embed)
             if channel_id == None: return
             elif channel_id.lower() == "cancel": return
-            error = await validate_channel_id(channel_id)
+            error, channel_id = await validate_channel_id(channel_id)
 
         # api_url
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
@@ -91,7 +94,9 @@ class ui(commands.Cog):
         api_url = await ask_message(ctx, embed=embed)
         if api_url == None: return
         elif api_url.lower() == "cancel": return
-        elif not api_url.endswith('/'): api_url += '/'
+        if not api_url.endswith('/'): api_url = api_url + '/'
+        if not api_url.endswith('api/'): api_url = api_url + 'api/'
+        if not api_url.startswith('http://') or not api_url.startswith('https://'): api_url = 'http://' + api_url
         async def validate_api_url():
             if len(api_url) < 1 or len(api_url) > 200: return f"Invalid length! 200 characters max, you have {len(api_url)}."
             try:
@@ -140,7 +145,7 @@ class ui(commands.Cog):
         embed.add_field(name="What password should be used to log in to the C.RCON?", value="This is the password that you would use to log in.")
         embed.set_image(url='https://media.discordapp.net/attachments/790967581396828190/856254363323203584/unknown.png')
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
-        api_pw = await ask_message(ctx, embed=embed)
+        api_pw = await ask_message(ctx, embed=embed, censor=True)
         if api_pw == None: return
         elif api_pw.lower() == "cancel": return
         def validate_api_pw():
@@ -188,10 +193,10 @@ class ui(commands.Cog):
         if server_id == None: return
         elif server_id.lower() == "cancel": return
         def validate_server_id():
-            try: server_id = int(server_id)
+            try: int(server_id)
             except: return "Value is not a number"
-            if server_id < 1: return f"Number out of range! Must be greater than 0."
-        error = await validate_server_id()
+            if int(server_id) < 1: return f"Number out of range! Must be greater than 0."
+        error = validate_server_id()
         while error is not None:
             embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
             embed.set_author(name=error)
@@ -199,6 +204,7 @@ class ui(commands.Cog):
             if server_id == None: return
             elif server_id.lower() == "cancel": return
             error = validate_server_id()
+        server_id = int(server_id)
 
         scoreboard = await ctx.bot.scoreboards.register(ctx.bot, name, ctx.guild.id, channel_id, 0, api_url, api_user, api_pw, scoreboard_url, server_id)
 
@@ -208,6 +214,32 @@ class ui(commands.Cog):
         )
         embed.set_author(name=f"Scoreboard created", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
         await ctx.send(embed=embed)
+
+    @commands.command(name='delete', aliases=['delete_sb', 'delete_scoreboard', 'remove', 'remove_sb', 'remove_scoreboard'])
+    async def delete_scoreboard(self, ctx, message):
+        try: message = int(message)
+        except ValueError:
+            try: message = (await commands.MessageConverter().convert(ctx, message)).id
+            except commands.BadArgument:
+                raise commands.BadArgument('Message could not be found')
+        
+        sb = ctx.bot.scoreboards.get(message)
+        if not sb or sb.guild.id != ctx.guild.id:
+            raise commands.BadArgument('No scoreboard found with message id %s' % message)
+
+        embed = discord.Embed(color=discord.Color.gold())
+        embed.add_field(name=f"⚠️ Are you sure you want to delete \"{sb.name}\"?", value="This will delete the associated message.")
+        options = {
+            "<:yes:809149148356018256>": "Yes, delete the scoreboard",
+            "<:no:808045512393621585>": "No, keep the scoreboard"
+        }
+        res = await ask_reaction(ctx, embed, options)
+        
+        if res == "<:yes:809149148356018256>":
+            await ctx.bot.scoreboards.delete(message)
+            embed = discord.Embed(color=discord.Color(7844437))
+            embed.set_author(name=f"Scoreboard deleted", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
+            await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(ui(bot))

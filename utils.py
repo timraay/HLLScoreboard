@@ -25,7 +25,7 @@ def add_empty_fields(embed):
         empty_fields_to_add = 3 - (fields % 3)
         if empty_fields_to_add in [1, 2]:
             for i in range(empty_fields_to_add):
-                embed.add_field(name="‏‎ ", value="‏‎ ") # These are special characters that can not be seen
+                embed.add_field(name="\u200E", value="\u200E") # These are special characters that can not be seen
     return embed
 
 
@@ -68,7 +68,7 @@ async def ask_reaction(ctx, embed, options, timeout=300.0, delete_after=False):
         await msg.edit(embed=embed)
     return str(reaction.emoji)
 
-async def ask_message(ctx, embed, timeout=300.0, allow_image=False, delete_after=False):
+async def ask_message(ctx, embed, timeout=300.0, allow_image=False, delete_after=False, censor=False):
     if allow_image: _options = "**Type out your answer, image attachment allowed**"
     else: _options = "**Type out your answer**"
 
@@ -89,6 +89,12 @@ async def ask_message(ctx, embed, timeout=300.0, allow_image=False, delete_after
             if allow_image: return None, None
             else: return None
 
+    if censor:
+        answer = '\*'*20
+        await message.delete()
+    else:
+        answer = message.content
+
     if allow_image:
         attachment = ""
         for att in message.attachments:
@@ -100,18 +106,14 @@ async def ask_message(ctx, embed, timeout=300.0, allow_image=False, delete_after
                     if att.is_spoiler: message.content += f"\n\n||{att.url}||"
                     else: message.content += f"\n\n{att.url}"
                 break
-        if delete_after:
-            await msg.delete()
-        else:
-            _options = f"**Answer:**\n>>> \"{message.content}\""
-            embed.set_field_at(-1, name="‏", value=_options, inline=False)
-            await msg.edit(embed=embed)
-        return message.content, attachment
+        ret = (message.content, attachment)
     else:
-        if delete_after:
-            await msg.delete()
-        else:
-            _options = f"**Answer:**\n>>> \"{message.content}\""
-            embed.set_field_at(-1, name="‏", value=_options, inline=False)
-            await msg.edit(embed=embed)
-        return message.content
+        ret = message.content
+
+    if delete_after:
+        await msg.delete()
+    else:
+        _options = f"**Answer:**\n>>> \"{answer}\""
+        embed.set_field_at(-1, name="‏", value=_options, inline=False)
+        await msg.edit(embed=embed)
+    return ret

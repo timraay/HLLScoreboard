@@ -32,12 +32,6 @@ ASCII_ART = """`                    __________
              |______________________||             
                                                   `"""
 
-with open('creds.txt', 'r') as f:
-    USERNAME, PASSWORD = f.read().split('\n')
-    
-with open('scoreboards.json', 'r') as f:
-    SCOREBOARDS = json.load(f)['scoreboards']
-
 MAPS = {
     "foy_warfare": "Foy",
     "stmariedumont_warfare": "SMDM",
@@ -73,16 +67,19 @@ class ScoreboardInstance:
         self.password = api_pw
         self.scoreboard_url = scoreboard_url
         self.server_filter = int(server_id)
-        self.guild = self.bot.get_guild(guild_id)
-        self.channel = self.guild.get_channel(channel_id)
-        self._message_id = message_id
-        try: self.message = await self.channel.fetch_message(message_id)
+        self.guild = self.bot.get_guild(int(guild_id))
+        self.channel = self.guild.get_channel(int(channel_id))
+        self._message_id = int(message_id)
+        try: self.message = await self.channel.fetch_message(self._message_id)
         except discord.NotFound:
             self.message = await self.channel.send(embed=discord.Embed(description='No! Don\'t look yet!'))
             if self._message_id:
                 with DBConnection('data.db') as cur:
                     cur.execute('UPDATE scoreboards SET message_id = ? WHERE channel_id = ? AND name = ? AND api_url = ? AND server_id = ?',
                         (self.message.id, self.channel.id, self.name, self.api_url, self.server_filter))
+            else:
+                self.add_to_database()
+            self._message_id = self.message.id
 
         #await self.message.clear_reactions()
         self.page = 1
@@ -99,7 +96,7 @@ class ScoreboardInstance:
         async with aiohttp.ClientSession(cookie_jar=jar) as session:
 
             # Login
-            payload = {'username': USERNAME, 'password': PASSWORD}
+            payload = {'username': self.username, 'password': self.password}
             await session.post(self.url+LOGIN_ENDPOINT, json=payload)
             
             # Get match history
@@ -209,7 +206,13 @@ class ScoreboardInstance:
     def add_to_database(self):
         with DBConnection('data.db') as cur:
             cur.execute('INSERT INTO scoreboards VALUES (?,?,?,?,?,?,?,?,?)', (self.name, self.guild.id, self.channel.id,
-                self.message.id, self.api_url, self.api_user, self.api_pw, self.scoreboard_url, self.server_filter))
+                self.message.id, self.url, self.username, self.password, self.scoreboard_url, self.server_filter))
+
+    async def delete(self):
+        with DBConnection('data.db') as cur:
+            cur.execute('DELETE FROM scoreboards WHERE message_id = ?', (self.message.id,))
+        await self.message.delete()
+        self = None
 
 from collections.abc import Sequence
 
@@ -224,13 +227,21 @@ class ScoreboardList(Sequence):
         return len(self.scoreboards)
 
     def add(self, instance: ScoreboardInstance):
-        self.scoreboards.append(ScoreboardInstance)
+        self.scoreboards.append(instance)
         return self.scoreboards
 
     async def register(self, *args, **kwargs):
         instance = await ScoreboardInstance.create(*args, **kwargs)
         self.add(instance)
         return instance
+    
+    async def delete(self, message_id: int):
+        for i, sb in enumerate(self.scoreboards):
+            if sb.message.id == int(message_id):
+                await sb.delete()
+                self.scoreboards.pop(i)
+                return
+        raise KeyError('No scoreboard found with this message_id')
     
     async def update_all(self, silent=True):
         for inst in self.scoreboards:
@@ -240,7 +251,13 @@ class ScoreboardList(Sequence):
                 if not silent:
                     print('%s - Failed to update %s:\n%s' % (datetime.now(), inst.name, e))
         
-
+    def get(self, message_id: int):
+        result = None
+        for sb in self.scoreboards:
+            if sb.message.id == int(message_id):
+                result = sb
+                break
+        return result
 
 class scoreboard(commands.Cog):
     def __init__(self, bot):
@@ -258,7 +275,7 @@ class scoreboard(commands.Cog):
 
         self.bot.scoreboards = ScoreboardList()
         for row in res:
-            await self.bot.scoreboards.register(self.bot, *row.values())
+            await self.bot.scoreboards.register(self.bot, *row)
         
         print('Launched at', datetime.now())     
         self.update_scoreboard.add_exception_type(Exception)
