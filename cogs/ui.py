@@ -41,7 +41,7 @@ class ui(commands.Cog):
         await ctx.send(embed=embed)
 
     async def ask_name(self, ctx, author='Creating new feed... (1/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What should the scoreboard's name be?", value="Keep it short. 32 characters max.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -53,7 +53,7 @@ class ui(commands.Cog):
             else: return None
         error = validate_name()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             name = await ask_message(ctx, embed)
             if name == None: return
@@ -61,7 +61,7 @@ class ui(commands.Cog):
             error = validate_name()
         return name
     async def ask_channel_id(self, ctx, author='Creating new feed... (2/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What channel should the scoreboard be in?", value="Must be a text channel the bot can send messages to.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -77,7 +77,7 @@ class ui(commands.Cog):
             return None, channel_id
         error, channel_id = await validate_channel_id(channel_id)
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             channel_id = await ask_message(ctx, embed)
             if channel_id == None: return
@@ -85,7 +85,7 @@ class ui(commands.Cog):
             error, channel_id = await validate_channel_id(channel_id)
         return channel_id
     async def ask_api_url(self, ctx, author='Creating new feed... (3/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data from the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -109,7 +109,7 @@ class ui(commands.Cog):
                 return e.__class__.__name__ + ": " + str(e)
         error = await validate_api_url()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             api_url = await ask_message(ctx, embed)
             if api_url == None: return
@@ -120,7 +120,7 @@ class ui(commands.Cog):
             error = await validate_api_url()
         return api_url
     async def ask_api_user(self, ctx, author='Creating new feed... (4/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What username should be used to log in to the C.RCON?", value="This is the username that you would use to log in.")
         embed.set_image(url='https://cdn.discordapp.com/attachments/790967581396828190/856254303524880414/unknown.png')
@@ -133,7 +133,7 @@ class ui(commands.Cog):
             else: return None
         error = validate_api_user()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             api_user = await ask_message(ctx, embed)
             if api_user == None: return
@@ -141,7 +141,7 @@ class ui(commands.Cog):
             error = validate_api_user()
         return api_user
     async def ask_api_pw(self, ctx, author='Creating new feed... (5/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What password should be used to log in to the C.RCON?", value="This is the password that you would use to log in.")
         embed.set_image(url='https://media.discordapp.net/attachments/790967581396828190/856254363323203584/unknown.png')
@@ -154,7 +154,7 @@ class ui(commands.Cog):
             else: return None
         error = validate_api_pw()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             api_pw = await ask_message(ctx, embed)
             if api_pw == None: return
@@ -162,7 +162,7 @@ class ui(commands.Cog):
             error = validate_api_pw()
         return api_pw
     async def ask_scoreboard_url(self, ctx, author='Creating new feed... (6/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What link should be used to redirect to the C.RCON's gamescoreboard page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#/gamescoreboard` or `https://<hostname>/#/gamescoreboard`. This value is OPTIONAL, typing \"none\" will leave it empty.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -176,7 +176,7 @@ class ui(commands.Cog):
             elif '#/gamescoreboard' not in scoreboard_url: return "URL doesn't contain \"#/gamescoreboard\""
         error = validate_scoreboard_url()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             scoreboard_url = await ask_message(ctx, embed)
             if scoreboard_url == None: return
@@ -185,7 +185,7 @@ class ui(commands.Cog):
             error = validate_scoreboard_url()
         return scoreboard_url
     async def ask_server_id(self, ctx, author='Creating new feed... (7/7)'):
-        embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
+        embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What is the server's ID?", value="Required when having multiple servers connected to the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). Check the C.RCON's `.env` file. If only one server is connected this should just be 1.")
         embed.set_image(url="https://media.discordapp.net/attachments/790967581396828190/856262209372684288/unknown.png")
@@ -199,7 +199,7 @@ class ui(commands.Cog):
             if int(server_id) < 1: return f"Number out of range! Must be greater than 0."
         error = validate_server_id()
         while error is not None:
-            embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
+            embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
             server_id = await ask_message(ctx, embed)
             if server_id == None: return
