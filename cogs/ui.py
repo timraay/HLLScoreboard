@@ -32,7 +32,7 @@ class ui(commands.Cog):
                 else: jump = "No message ⚠️"
                 
                 tab = " ".join(["\u200E"]*6)
-                embed.description += f'**#{str(i+1)}** | {sb.name} (`{sb._message_id}`)\n{tab} | {channel} -> {jump}'
+                embed.description += f'**#{str(i+1)}** | {sb.name} (`{sb._message_id}`)\n{tab} | {channel} -> {jump}\n'
 
         else:
             embed.title = "This guild doesn't have any scoreboards yet!"
@@ -106,7 +106,7 @@ class ui(commands.Cog):
             except KeyError:
                 return 'Connected, but received unexpected data'
             except Exception as e:
-                return str(e)
+                return e.__class__.__name__ + ": " + str(e)
         error = await validate_api_url()
         while error is not None:
             embed = discord.Embed(color=discord.Color.from_rgb(255, 255, 254))
@@ -114,6 +114,9 @@ class ui(commands.Cog):
             api_url = await ask_message(ctx, embed)
             if api_url == None: return
             elif api_url.lower() == "cancel": return
+            if not api_url.endswith('/'): api_url = api_url + '/'
+            if not api_url.endswith('api/'): api_url = api_url + 'api/'
+            if not api_url.startswith('http://') or not api_url.startswith('https://'): api_url = 'http://' + api_url
             error = await validate_api_url()
         return api_url
     async def ask_api_user(self, ctx, author='Creating new feed... (4/7)'):
@@ -301,7 +304,7 @@ class ui(commands.Cog):
 
         elif option in ['scoreboard_url', 'scoreboard', 'gamescoreboard', 'gamescoreboard_url']:
             value = await self.ask_scoreboard_url(ctx, author="Editing scoreboard...")
-            if value: sb.scoreboard_url = str(value)
+            if value is not None: sb.scoreboard_url = str(value)
 
         elif option in ['server_id', 'server_filter', 'server']:
             value = await self.ask_server_id(ctx, author="Editing scoreboard...")
@@ -310,6 +313,9 @@ class ui(commands.Cog):
         else:
             raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id' % option)
         
+        if not value:
+            return
+
         sb.save()
         ctx.bot.scoreboards.set(sb_index, sb)
         embed = discord.Embed(color=discord.Color(7844437), description=f"New value is {value}")
