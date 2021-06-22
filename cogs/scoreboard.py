@@ -380,6 +380,12 @@ class scoreboard(commands.Cog):
                         await scoreboard._update_embed()
                 await scoreboard.message.remove_reaction(str(payload.emoji), payload.member)
 
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        for i, sb in enumerate(self.scoreboards):
+            if sb.guild.id == guild.id:
+                sb.delete()
+                self.scoreboards[i] = None
 
 
         
