@@ -261,7 +261,7 @@ class ScoreboardInstance:
 
         # Create embed
         embed = discord.Embed(description=output)
-        if self.scoreboard_url: embed.description += f'\n[\> Click here for an extended view]({self.scoreboard_url})'
+        if self.scoreboard_url: embed.description += f'\n[\> Click here for past rounds]({self.scoreboard_url})'
         embed.set_author(icon_url=EMBED_ICON, name=self.name)
        
         # Update embed
