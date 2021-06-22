@@ -370,6 +370,8 @@ class scoreboard(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         for scoreboard in self.bot.scoreboards:
+            if not scoreboard:
+                continue
             if payload.message_id == scoreboard.message.id and payload.user_id != self.bot.user.id:
                 if str(payload.emoji) in EMOJIS:
                     new_page = EMOJIS.index(str(payload.emoji))+1
