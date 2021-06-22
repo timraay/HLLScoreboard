@@ -2,10 +2,8 @@ import discord
 from discord.ext import commands, tasks
 import aiohttp
 import asyncio
-import re
 import math
 from datetime import datetime
-import json
 
 from models import DBConnection
 
@@ -204,7 +202,7 @@ class ScoreboardInstance:
         # Create embed
         match_duration = int((datetime.utcnow() - self.match_start).total_seconds() / 60)
         embed = discord.Embed(description=output)
-        if self.scoreboard_url: embed.description += f'\n[\> Click here for an extended view]({self.scoreboard_url})'
+        if self.scoreboard_url: embed.description += f'\n[\> Click here for past rounds]({self.scoreboard_url})'
         if not self._data:
             # Cool ASCII art when no data
             if match_duration >= 15 and match_duration <= 30:
