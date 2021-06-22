@@ -29,13 +29,49 @@ class _util(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(description="Get help with any of my commands", usage="s!help")
+    async def help(self, ctx):
+        embed = discord.Embed()
+        embed.set_author(name='HLL Scoreboard - Help', icon_url=ctx.bot.user.avatar_url, url='https://github.com/timraay/HLLScoreboard')
+        oauth = discord.utils.oauth_url(self.bot.user.id, permissions=discord.Permissions(permissions=8))
+        embed.description = f"Hello, I am HLL Scoreboard! I display live statistics from ongoing Hell Let Loose matches directly into your server.\n\nFor questions, feedback, bugs, and source code [visit my Github page](https://github.com/timraay/HLLScoreboard). To invite me, [click here]({oauth})."
+        embed.add_field(name='✏️ `s!create`', value='Create a new scoreboard')
+        embed.add_field(name='📄 `s!list`', value='List all scoreboards')
+        embed.add_field(name='📦 `s!invite`', value='Generate my invite link')
+        embed.add_field(name='🔧 `s!edit <message> <option>`', value='Edit a property of an existing scoreboard')
+        embed.add_field(name='🗑️ `s!delete <message>`', value='Get rid of an existing scoreboard')
+        embed.set_footer(text='By Abusify - Made with love ❤️')
+        await ctx.send(embed=embed)
 
-    @commands.command(description="View my current latency", usage="caw ping")
+    @commands.command()
+    async def invite(self, ctx):
+        oauth = discord.utils.oauth_url(self.bot.user.id, permissions=discord.Permissions(permissions=8))
+        embed = discord.Embed(description=f"[☺️ Click here for an invite link!]({oauth})")
+        await ctx.send(embed=embed)
+        
+    @commands.command(description="View my current latency", usage="r!ping")
     async def ping(self, ctx):
-        await ctx.send('Pong! {0}ms'.format(round(self.bot.latency * 1000, 1)))
+        latency = self.bot.latency * 1000
+        color = discord.Color.dark_green()
+        if latency > 150: color = discord.Color.green()
+        if latency > 200: color = discord.Color.gold()
+        if latency > 300: color = discord.Color.orange()
+        if latency > 500: color = discord.Color.red()
+        if latency > 1000: color = discord.Color(1)
+        embed = discord.Embed(description=f'🏓 Pong! {round(latency, 1)}ms', color=color)
+        await ctx.send(embed=embed)
 
 
-    @commands.command(description="Evaluate a python variable or expression", usage="caw eval <cmd>", hidden=True)
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+        if message.content in [f'<@!{self.bot.user.id}>', f'<@{self.bot.user.id}>']:
+            await message.channel.send('Hello, I am **HLL Scoreboard** 👋\nFor more info, see `s!help`')
+            
+
+
+    @commands.command(description="Evaluate a python variable or expression", usage="s!eval <cmd>", hidden=True)
     @commands.is_owner()
     async def eval(self, ctx, *, cmd):
         """Evaluates input.
