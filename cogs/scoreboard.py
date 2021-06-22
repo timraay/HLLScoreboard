@@ -214,6 +214,14 @@ class ScoreboardInstance:
         await self.message.delete()
         self = None
 
+    def save(self):
+        with DBConnection('data.db') as cur:
+            cur.execute('''UPDATE scoreboards SET name = ?, guild_id = ?, channel_id = ?, message_id = ?,
+                api_url = ?, api_user = ?, api_pw = ?, scoreboard_url = ?, server_id = ? WHERE message_id = ?''', (
+                    self.name, self.guild.id, self.channel.id, self.message.id, self.url, self.username,
+                    self.password, self.scoreboard_url, self.server_filter, self._message_id))
+        self._message_id = self.message.id
+
 from collections.abc import Sequence
 
 class ScoreboardList(Sequence):
@@ -239,25 +247,31 @@ class ScoreboardList(Sequence):
         for i, sb in enumerate(self.scoreboards):
             if sb.message.id == int(message_id):
                 await sb.delete()
-                self.scoreboards.pop(i)
+                self.scoreboards[i] = None
                 return
         raise KeyError('No scoreboard found with this message_id')
     
     async def update_all(self, silent=True):
         for inst in self.scoreboards:
             try:
-                await inst.update()
+                if inst: await inst.update()
             except Exception as e:
                 if not silent:
                     print('%s - Failed to update %s:\n%s' % (datetime.now(), inst.name, e))
         
-    def get(self, message_id: int):
+    def get(self, message_id: int, return_index=False):
         result = None
-        for sb in self.scoreboards:
-            if sb.message.id == int(message_id):
+        index = None
+        for i, sb in enumerate(self):
+            if not sb:
+                continue
+            elif sb.message.id == int(message_id):
                 result = sb
+                index = i
                 break
-        return result
+        if return_index: return result, index
+        else: return result
+
 
 class scoreboard(commands.Cog):
     def __init__(self, bot):

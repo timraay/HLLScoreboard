@@ -224,8 +224,7 @@ class ui(commands.Cog):
         embed.set_author(name=f"Scoreboard created", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
         await ctx.send(embed=embed)
 
-    @commands.command(name='delete', aliases=['delete_sb', 'delete_scoreboard', 'remove', 'remove_sb', 'remove_scoreboard'])
-    async def delete_scoreboard(self, ctx, message):
+    async def get_scoreboard(self, ctx, message):
         try: message = int(message)
         except ValueError:
             try: message = (await commands.MessageConverter().convert(ctx, message)).id
@@ -235,6 +234,11 @@ class ui(commands.Cog):
         sb = ctx.bot.scoreboards.get(message)
         if not sb or sb.guild.id != ctx.guild.id:
             raise commands.BadArgument('No scoreboard found with message id %s' % message)
+        return sb
+
+    @commands.command(name='delete', aliases=['delete_sb', 'delete_scoreboard', 'remove', 'remove_sb', 'remove_scoreboard'])
+    async def delete_scoreboard(self, ctx, message):
+        sb = await self.get_scoreboard(ctx, message)
 
         embed = discord.Embed(color=discord.Color.gold())
         embed.add_field(name=f"⚠️ Are you sure you want to delete \"{sb.name}\"?", value="This will delete the associated message.")
@@ -251,8 +255,51 @@ class ui(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.group(name='set', aliases=['edit', 'update', 'set_scoreboard', 'edit_scoreboard', 'update_scoreboard'], invoke_without_command=False)
-    async def set_scoreboard(self, ctx, option: str):
-        raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id')
+    async def set_scoreboard(self, ctx, message, option: str):
+        sb, sb_index = await self.get_scoreboard(ctx, message, return_index=True)
+        option = option.lower()
+
+        if option.lower in ['name']:
+            value = await self.ask_name(ctx)
+            if value: sb.name = str(value)
+
+        elif option.lower in ['channel', 'channel_id']:
+            value = await self.ask_channel_id(ctx)
+            if value:
+                await sb.message.delete()
+                sb.channel = ctx.guild.get_text_channel(int(value))
+                sb.message = await sb.channel.send(embed=discord.Embed(description='No! Don\'t look yet!'))
+
+        elif option.lower in ['api_url', 'api', 'api_link']:
+            value = await self.ask_api_url(ctx)
+            if value: sb.url = str(value)
+
+        elif option.lower in ['api_user', 'api_username', 'user', 'username']:
+            value = await self.ask_api_user(ctx)
+            if value: sb.username = str(value)
+
+        elif option.lower in ['api_pw', 'api_password', 'pw', 'password']:
+            value = await self.ask_api_pw(ctx)
+            if value:
+                sb.password = str(value)
+                value = '\*'*20
+
+        elif option.lower in ['scoreboard_url', 'scoreboard', 'gamescoreboard', 'gamescoreboard_url']:
+            value = await self.ask_scoreboard_url(ctx)
+            if value: sb.scoreboard_url = str(value)
+
+        elif option.lower in ['server_id', 'server_filter', 'server']:
+            value = await self.ask_server_id(ctx)
+            if value: sb.server_filter = int(value)
+
+        else:
+            raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id')
+        
+        sb.save()
+        ctx.bot.scoreboards[sb_index] = sb
+        embed = discord.Embed(color=discord.Color(7844437), description=f"New value is {value}")
+        embed.set_author(name=f"{option} updated", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(ui(bot))
