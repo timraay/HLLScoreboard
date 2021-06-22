@@ -11,6 +11,7 @@ class ui(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(name='list', aliases=['scoreboards', 'sbs', 'list_scoreboards'])
     async def list_scoreboards(self, ctx):
         embed = discord.Embed()
@@ -208,6 +209,7 @@ class ui(commands.Cog):
         server_id = int(server_id)
         return server_id
 
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(name='create', aliases=['create_sb', 'create_scoreboard', 'add', 'add_sb', 'add_scoreboard'])
     async def create_scoreboard(self, ctx):
 
@@ -254,6 +256,7 @@ class ui(commands.Cog):
             raise commands.BadArgument('No scoreboard found with message id %s' % message)
         return (sb, i) if return_index else sb
 
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(name='delete', aliases=['delete_sb', 'delete_scoreboard', 'remove', 'remove_sb', 'remove_scoreboard'])
     async def delete_scoreboard(self, ctx, message):
         sb = await self.get_scoreboard(ctx, message)
@@ -272,6 +275,7 @@ class ui(commands.Cog):
             embed.set_author(name=f"Scoreboard deleted", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
             await ctx.send(embed=embed)
 
+    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.group(name='set', aliases=['edit', 'update', 'set_scoreboard', 'edit_scoreboard', 'update_scoreboard'], invoke_without_command=False)
     async def set_scoreboard(self, ctx, message, option: str):
         sb, sb_index = await self.get_scoreboard(ctx, message, return_index=True)
