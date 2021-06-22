@@ -68,8 +68,6 @@ class _util(commands.Cog):
             return
         if message.content in [f'<@!{self.bot.user.id}>', f'<@{self.bot.user.id}>']:
             await message.channel.send('Hello, I am **HLL Scoreboard** 👋\nFor more info, see `s!help`')
-            
-        await self.bot.process_commands(message)
 
 
     @commands.command(description="Evaluate a python variable or expression", usage="s!eval <cmd>", hidden=True)
