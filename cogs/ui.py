@@ -40,9 +40,7 @@ class ui(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(name='create', aliases=['create_sb', 'create_scoreboard', 'add', 'add_sb', 'add_scoreboard'])
-    async def create_scoreboard(self, ctx):
-        # name
+    async def ask_name(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (1/7)")
         embed.add_field(name="What should the scoreboard's name be?", value="Keep it short. 32 characters max.")
@@ -61,8 +59,8 @@ class ui(commands.Cog):
             if name == None: return
             elif name.lower() == "cancel": return
             error = validate_name()
-        
-        # channel_id
+        return name
+    async def ask_channel_id(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (2/7)")
         embed.add_field(name="What channel should the scoreboard be in?", value="Must be a text channel the bot can send messages to.")
@@ -85,8 +83,8 @@ class ui(commands.Cog):
             if channel_id == None: return
             elif channel_id.lower() == "cancel": return
             error, channel_id = await validate_channel_id(channel_id)
-
-        # api_url
+        return channel_id
+    async def ask_api_url(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (3/7)")
         embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data from the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
@@ -117,8 +115,8 @@ class ui(commands.Cog):
             if api_url == None: return
             elif api_url.lower() == "cancel": return
             error = await validate_api_url()
-
-        # api_user
+        return api_url
+    async def ask_api_user(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (4/7)")
         embed.add_field(name="What username should be used to log in to the C.RCON?", value="This is the username that you would use to log in.")
@@ -138,8 +136,8 @@ class ui(commands.Cog):
             if api_user == None: return
             elif api_user.lower() == "cancel": return
             error = validate_api_user()
-
-        # api_pw
+        return api_user
+    async def ask_api_pw(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (5/7)")
         embed.add_field(name="What password should be used to log in to the C.RCON?", value="This is the password that you would use to log in.")
@@ -159,8 +157,8 @@ class ui(commands.Cog):
             if api_pw == None: return
             elif api_pw.lower() == "cancel": return
             error = validate_api_pw()
-      
-        # scoreboard_url
+        return api_pw
+    async def ask_scoreboard_url(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (6/7)")
         embed.add_field(name="What link should be used to redirect to the C.RCON's gamescoreboard page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#/gamescoreboard` or `https://<hostname>/#/gamescoreboard`. This value is OPTIONAL, typing \"none\" will leave it empty.")
@@ -182,8 +180,8 @@ class ui(commands.Cog):
             elif scoreboard_url.lower() == "cancel": return
             elif scoreboard_url.lower() == "none": scoreboard_url = ""
             error = validate_scoreboard_url()
-
-        # server_id
+        return scoreboard_url
+    async def ask_server_id(self, ctx):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
         embed.set_author(name="Creating new scoreboard... (7/7)")
         embed.add_field(name="What is the server's ID?", value="Required when having multiple servers connected to the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). Check the C.RCON's `.env` file. If only one server is connected this should just be 1.")
@@ -205,6 +203,17 @@ class ui(commands.Cog):
             elif server_id.lower() == "cancel": return
             error = validate_server_id()
         server_id = int(server_id)
+        return server_id
+
+    @commands.command(name='create', aliases=['create_sb', 'create_scoreboard', 'add', 'add_sb', 'add_scoreboard'])
+    async def create_scoreboard(self, ctx):
+        name = await self.ask_name(ctx)
+        channel_id = await self.ask_channel_id(ctx)
+        api_url = await self.ask_api_url(ctx)
+        api_user = await self.ask_api_user(ctx)
+        api_pw = await self.ask_api_pw(ctx)
+        scoreboard_url = await self.ask_scoreboard_url(ctx)
+        server_id = await self.ask_server_id(ctx)
 
         scoreboard = await ctx.bot.scoreboards.register(ctx.bot, name, ctx.guild.id, channel_id, 0, api_url, api_user, api_pw, scoreboard_url, server_id)
 
@@ -240,6 +249,10 @@ class ui(commands.Cog):
             embed = discord.Embed(color=discord.Color(7844437))
             embed.set_author(name=f"Scoreboard deleted", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
             await ctx.send(embed=embed)
+
+    @commands.group(name='set', aliases=['edit', 'update', 'set_scoreboard', 'edit_scoreboard', 'update_scoreboard'], invoke_without_command=False)
+    async def set_scoreboard(self, ctx, option: str):
+        raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id')
 
 def setup(bot):
     bot.add_cog(ui(bot))
