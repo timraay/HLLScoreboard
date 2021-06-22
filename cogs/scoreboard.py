@@ -55,6 +55,13 @@ MAPS = {
     "utahbeach_offensive_ger": "Off. Utah (GER)",
 }
 
+class VerificationError(Exception):
+    pass
+class RCONError(Exception):
+    pass
+class ContentTypeError(Exception):
+    pass
+
 class ScoreboardInstance:
     @classmethod
     async def create(cls, bot, name, guild_id, channel_id, message_id, api_url, api_user, api_pw, scoreboard_url, server_id):
@@ -88,45 +95,69 @@ class ScoreboardInstance:
         self._message_id = self.message.id
 
     async def update(self):
-        try: self.message = await self.channel.fetch_message(self._message_id)
-        except discord.NotFound: await self._resend_message()
-        await self._fetch_data()
-        await self._update_embed()
+        try:
+            try: self.message = await self.channel.fetch_message(self._message_id)
+            except discord.NotFound: await self._resend_message()
+            await self._fetch_data()
+            await self._update_embed()
+        except Exception as e:
+            try: await self.display_message(f'Failed to update scoreboard:\n{e.__class__.__name__}: {str(e)}\n\nContact an admin if this keeps occuring.')
+            except Exception as e2: print('UpdateError:', e2.__class__.__name__ + ': ' + str(e2))
+            raise e
         
     async def _fetch_data(self):
         # Get logs
         jar = aiohttp.CookieJar(unsafe=True)
-        async with aiohttp.ClientSession(cookie_jar=jar) as session:
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(cookie_jar=jar, timeout=timeout) as session:
 
-            # Login
-            payload = {'username': self.username, 'password': self.password}
-            await session.post(self.url+LOGIN_ENDPOINT, json=payload)
-            
-            # Get match history
-            async with session.get(self.url+MAP_HISTORY_ENDPOINT) as res:
-                match_history = (await res.json())['result']
+            try:
+                # Login
+                payload = {'username': self.username, 'password': self.password}
+                async with session.post(self.url+LOGIN_ENDPOINT, json=payload) as res:
+                    raw_data = await res.json()
+                    if raw_data['error']:
+                        raise RCONError(raw_data['error'])
+                    failed = raw_data['failed']
+                    if failed is True:
+                        raise VerificationError('Failed to login to the RCON. Check if the username and password are correct.')
                 
-                match_info = match_history[0]
-                match_start_ts = match_info['start']
-                self.match_end = None
-
-                self.match_start = datetime.utcfromtimestamp(match_start_ts)
-                if (datetime.utcnow() - self.match_start).total_seconds() < 300:
-                    match_info = match_history[1]
+                # Get match history
+                async with session.get(self.url+MAP_HISTORY_ENDPOINT) as res:
+                    raw_data = await res.json()
+                    if raw_data['error']:
+                        raise RCONError(raw_data['error'])
+                    match_history = raw_data['result']
+                    
+                    match_info = match_history[0]
                     match_start_ts = match_info['start']
-                    self.match_start = datetime.utcfromtimestamp(match_start_ts)
-                    match_end_ts = match_info['end']
-                    self.match_end = datetime.utcfromtimestamp(match_end_ts)
+                    self.match_end = None
 
-                current_map = match_info['name'].replace('_RESTART', '')
-                try: self.current_map = MAPS[current_map]
-                except KeyError: self.current_map = current_map
-            
-            # Get logs
-            payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(self.match_start), 'server_filter': self.server_filter}
-            if self.match_end: payload['till'] = str(self.match_end)
-            async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
-                logs = (await res.json())['result']
+                    self.match_start = datetime.utcfromtimestamp(match_start_ts)
+                    if (datetime.utcnow() - self.match_start).total_seconds() < 300:
+                        match_info = match_history[1]
+                        match_start_ts = match_info['start']
+                        self.match_start = datetime.utcfromtimestamp(match_start_ts)
+                        match_end_ts = match_info['end']
+                        self.match_end = datetime.utcfromtimestamp(match_end_ts)
+
+                    current_map = match_info['name'].replace('_RESTART', '')
+                    try: self.current_map = MAPS[current_map]
+                    except KeyError: self.current_map = current_map
+                
+                # Get logs
+                payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(self.match_start), 'server_filter': self.server_filter}
+                if self.match_end: payload['till'] = str(self.match_end)
+                async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
+                    raw_data = await res.json()
+                    if raw_data['error']:
+                        raise RCONError(raw_data['error'])
+                    logs = raw_data['result']
+
+            except aiohttp.ContentTypeError as e:
+                raise ContentTypeError("Webpage returned unexpected data. Likely the URL is incorrect.\n\nRaw data:\n" + str(e))
+            except asyncio.TimeoutError as e:
+                e.args = 'Could not resolve host within 10 seconds. Check if the URL is correct and the RCON tool is running.', 
         
         # Parse logs
         data = dict()
@@ -173,7 +204,7 @@ class ScoreboardInstance:
         # Create embed
         match_duration = int((datetime.utcnow() - self.match_start).total_seconds() / 60)
         embed = discord.Embed(description=output)
-        embed.description += f'\n[\> Click here for an extended view]({self.scoreboard_url})'
+        if self.scoreboard_url: embed.description += f'\n[\> Click here for an extended view]({self.scoreboard_url})'
         if not self._data:
             # Cool ASCII art when no data
             if match_duration >= 15 and match_duration <= 30:
@@ -205,6 +236,38 @@ class ScoreboardInstance:
                 await self.message.add_reaction(emoji)
             elif i+1 > total_pages and emoji in [str(reaction) for reaction in self.message.reactions]:
                 await self.message.clear_reaction(emoji)
+
+    async def display_message(self, message):
+        lines = list()
+        words = message.split(' ')
+        line = words.pop(0)
+        for word in words:
+            if len(line) + len(word.split('\n', 1)[0]) <= 47:
+                line = line + " " + word
+            else:
+                lines.append(line)
+                line = word
+            while '\n' in line:
+                lines.append('')
+                lines[-1], line = line.split('\n', 1)
+        lines.append(line)
+        
+        lines = [''] + lines + ['']
+        
+        for i, line in enumerate(lines):
+            if len(line) <= 47:
+                line = line + (' ' * (47 - len(line)))
+                lines[i] = line
+
+        output = '`  ' + '  `\n`  '.join(lines) + '  `'
+
+        # Create embed
+        embed = discord.Embed(description=output)
+        if self.scoreboard_url: embed.description += f'\n[\> Click here for an extended view]({self.scoreboard_url})'
+        embed.set_author(icon_url=EMBED_ICON, name=self.name)
+       
+        # Update embed
+        await self.message.edit(embed=embed)
 
     def add_to_database(self):
         with DBConnection('data.db') as cur:
