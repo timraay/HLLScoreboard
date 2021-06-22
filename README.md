@@ -1,17 +1,19 @@
 # HLL Scoreboard: Live Hell Let Loose scoreboards in your Discord server.
 
-<img align="right" width="260" height="260" src="icon.png">
+<img align="right" width="340" height="340" src="icon.png">
 
 HLL Scoreboard is a Discord bot made by timraay/Abusify that allows Hell Let Loose server owners to display current statistics in their Discord server. Statistics will be pulled from the [HLL Community RCON tool](https://github.com/MarechJ/hll_rcon_tool) by [MarechJ](https://github.com/MarechJ).
 
-Invite and use the bot by [clicking here](https://discord.com/api/oauth2/authorize?client_id=811927151631794236&permissions=8&scope=bot)! If you want to use the code to run your own bot, see the conditions below.
+Invite and use the bot by [clicking here](https://discord.com/oauth2/authorize?client_id=689100863029248098&scope=bot&permissions=8)! If you want to use the code to run your own bot, see the conditions below.
+
+*Profile picture from a youtube thumbnail by [Terrydactyl Gaming](https://www.youtube.com/watch?v=u6ivsL7LY8M)*
 
 ### License
 HLL Scoreboard has a GNU GPLv3 license. In short, you can obtain a copy of the source code, modify it, and even distribute it. When modifying the code though, you must keep the GNU GPLv3 license. Your software should also be marked as changed, with a reference to the original source code.
 
 # Setup
 You must be an administrator of the Discord server you are adding the scoreboard to.
-1. Invite the bot to your server using [this link](https://discord.com/api/oauth2/authorize?client_id=811927151631794236&permissions=8&scope=bot)!
+1. Invite the bot to your server using [this link](https://discord.com/oauth2/authorize?client_id=689100863029248098&scope=bot&permissions=8)!
 2. Run the `s!add` command (doesn't have to be in the channel you want the scoreboard in)
 3. Follow the creation process. It will ask you for the following information, in the below order:
   - The name your scoreboard should be given
@@ -29,3 +31,6 @@ In case you have cloned the code and are willing to run the bot yourself, there'
 3. Install the dependencies: `pip3 install -r requirements.txt`
 4. Create a file called `token.txt` in the root folder and paste the token of [your Bot application](https://discord.com/developers/applications) there. Make sure there's no trailing spaces or newlines.
 5. Run the code! `python3 bot.py`
+
+# Preview
+<img align="center" src="preview.png">
