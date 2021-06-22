@@ -72,24 +72,27 @@ class ScoreboardInstance:
         self._message_id = int(message_id)
         try: self.message = await self.channel.fetch_message(self._message_id)
         except discord.NotFound:
-            self.message = await self.channel.send(embed=discord.Embed(description='No! Don\'t look yet!'))
-            if self._message_id:
-                with DBConnection('data.db') as cur:
-                    cur.execute('UPDATE scoreboards SET message_id = ? WHERE channel_id = ? AND name = ? AND api_url = ? AND server_id = ?',
-                        (self.message.id, self.channel.id, self.name, self.api_url, self.server_filter))
-            else:
-                self.add_to_database()
-            self._message_id = self.message.id
+            await self._resend_message()
 
         #await self.message.clear_reactions()
         self.page = 1
         return self
+    async def _resend_message(self):
+        self.message = await self.channel.send(embed=discord.Embed(description='No! Don\'t look yet!'))
+        if self._message_id:
+            with DBConnection('data.db') as cur:
+                cur.execute('UPDATE scoreboards SET message_id = ? WHERE channel_id = ? AND name = ? AND api_url = ? AND server_id = ?',
+                    (self.message.id, self.channel.id, self.name, self.url, self.server_filter))
+        else:
+            self.add_to_database()
+        self._message_id = self.message.id
 
     async def update(self):
-        self.message = await self.channel.fetch_message(self._message_id)
+        try: self.message = await self.channel.fetch_message(self._message_id)
+        except discord.NotFound: await self._resend_message()
         await self._fetch_data()
         await self._update_embed()
-
+        
     async def _fetch_data(self):
         # Get logs
         jar = aiohttp.CookieJar(unsafe=True)
@@ -271,6 +274,9 @@ class ScoreboardList(Sequence):
                 break
         if return_index: return result, index
         else: return result
+    
+    def set(self, index, sb):
+        self.scoreboards[index] = sb
 
 
 class scoreboard(commands.Cog):

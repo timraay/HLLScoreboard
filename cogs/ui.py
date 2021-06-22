@@ -40,9 +40,9 @@ class ui(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    async def ask_name(self, ctx):
+    async def ask_name(self, ctx, author='Creating new feed... (1/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (1/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What should the scoreboard's name be?", value="Keep it short. 32 characters max.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         name = await ask_message(ctx, embed=embed)
@@ -60,9 +60,9 @@ class ui(commands.Cog):
             elif name.lower() == "cancel": return
             error = validate_name()
         return name
-    async def ask_channel_id(self, ctx):
+    async def ask_channel_id(self, ctx, author='Creating new feed... (2/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (2/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What channel should the scoreboard be in?", value="Must be a text channel the bot can send messages to.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         channel_id = await ask_message(ctx, embed=embed)
@@ -84,9 +84,9 @@ class ui(commands.Cog):
             elif channel_id.lower() == "cancel": return
             error, channel_id = await validate_channel_id(channel_id)
         return channel_id
-    async def ask_api_url(self, ctx):
+    async def ask_api_url(self, ctx, author='Creating new feed... (3/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (3/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data from the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         api_url = await ask_message(ctx, embed=embed)
@@ -116,9 +116,9 @@ class ui(commands.Cog):
             elif api_url.lower() == "cancel": return
             error = await validate_api_url()
         return api_url
-    async def ask_api_user(self, ctx):
+    async def ask_api_user(self, ctx, author='Creating new feed... (4/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (4/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What username should be used to log in to the C.RCON?", value="This is the username that you would use to log in.")
         embed.set_image(url='https://cdn.discordapp.com/attachments/790967581396828190/856254303524880414/unknown.png')
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -137,9 +137,9 @@ class ui(commands.Cog):
             elif api_user.lower() == "cancel": return
             error = validate_api_user()
         return api_user
-    async def ask_api_pw(self, ctx):
+    async def ask_api_pw(self, ctx, author='Creating new feed... (5/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (5/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What password should be used to log in to the C.RCON?", value="This is the password that you would use to log in.")
         embed.set_image(url='https://media.discordapp.net/attachments/790967581396828190/856254363323203584/unknown.png')
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -158,9 +158,9 @@ class ui(commands.Cog):
             elif api_pw.lower() == "cancel": return
             error = validate_api_pw()
         return api_pw
-    async def ask_scoreboard_url(self, ctx):
+    async def ask_scoreboard_url(self, ctx, author='Creating new feed... (6/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (6/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What link should be used to redirect to the C.RCON's gamescoreboard page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#/gamescoreboard` or `https://<hostname>/#/gamescoreboard`. This value is OPTIONAL, typing \"none\" will leave it empty.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         scoreboard_url = await ask_message(ctx, embed=embed)
@@ -181,9 +181,9 @@ class ui(commands.Cog):
             elif scoreboard_url.lower() == "none": scoreboard_url = ""
             error = validate_scoreboard_url()
         return scoreboard_url
-    async def ask_server_id(self, ctx):
+    async def ask_server_id(self, ctx, author='Creating new feed... (7/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(122, 255, 149))
-        embed.set_author(name="Creating new scoreboard... (7/7)")
+        embed.set_author(name=author)
         embed.add_field(name="What is the server's ID?", value="Required when having multiple servers connected to the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). Check the C.RCON's `.env` file. If only one server is connected this should just be 1.")
         embed.set_image(url="https://media.discordapp.net/attachments/790967581396828190/856262209372684288/unknown.png")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
@@ -237,18 +237,19 @@ class ui(commands.Cog):
         )
         embed.set_author(name=f"Scoreboard created", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
         await ctx.send(embed=embed)
+        await scoreboard.update()
 
-    async def get_scoreboard(self, ctx, message):
+    async def get_scoreboard(self, ctx, message, return_index=False):
         try: message = int(message)
         except ValueError:
             try: message = (await commands.MessageConverter().convert(ctx, message)).id
             except commands.BadArgument:
                 raise commands.BadArgument('Message could not be found')
         
-        sb = ctx.bot.scoreboards.get(message)
+        sb, i = ctx.bot.scoreboards.get(message, return_index=True)
         if not sb or sb.guild.id != ctx.guild.id:
             raise commands.BadArgument('No scoreboard found with message id %s' % message)
-        return sb
+        return (sb, i) if return_index else sb
 
     @commands.command(name='delete', aliases=['delete_sb', 'delete_scoreboard', 'remove', 'remove_sb', 'remove_scoreboard'])
     async def delete_scoreboard(self, ctx, message):
@@ -273,47 +274,48 @@ class ui(commands.Cog):
         sb, sb_index = await self.get_scoreboard(ctx, message, return_index=True)
         option = option.lower()
 
-        if option.lower in ['name']:
-            value = await self.ask_name(ctx)
+        if option in ['name']:
+            value = await self.ask_name(ctx, author="Editing scoreboard...")
             if value: sb.name = str(value)
 
-        elif option.lower in ['channel', 'channel_id']:
-            value = await self.ask_channel_id(ctx)
+        elif option in ['channel', 'channel_id']:
+            value = await self.ask_channel_id(ctx, author="Editing scoreboard...")
             if value:
                 await sb.message.delete()
-                sb.channel = ctx.guild.get_text_channel(int(value))
+                sb.channel = ctx.guild.get_channel(int(value))
                 sb.message = await sb.channel.send(embed=discord.Embed(description='No! Don\'t look yet!'))
 
-        elif option.lower in ['api_url', 'api', 'api_link']:
-            value = await self.ask_api_url(ctx)
+        elif option in ['api_url', 'api', 'api_link']:
+            value = await self.ask_api_url(ctx, author="Editing scoreboard...")
             if value: sb.url = str(value)
 
-        elif option.lower in ['api_user', 'api_username', 'user', 'username']:
-            value = await self.ask_api_user(ctx)
+        elif option in ['api_user', 'api_username', 'user', 'username']:
+            value = await self.ask_api_user(ctx, author="Editing scoreboard...")
             if value: sb.username = str(value)
 
-        elif option.lower in ['api_pw', 'api_password', 'pw', 'password']:
-            value = await self.ask_api_pw(ctx)
+        elif option in ['api_pw', 'api_password', 'pw', 'password']:
+            value = await self.ask_api_pw(ctx, author="Editing scoreboard...")
             if value:
                 sb.password = str(value)
                 value = '\*'*20
 
-        elif option.lower in ['scoreboard_url', 'scoreboard', 'gamescoreboard', 'gamescoreboard_url']:
-            value = await self.ask_scoreboard_url(ctx)
+        elif option in ['scoreboard_url', 'scoreboard', 'gamescoreboard', 'gamescoreboard_url']:
+            value = await self.ask_scoreboard_url(ctx, author="Editing scoreboard...")
             if value: sb.scoreboard_url = str(value)
 
-        elif option.lower in ['server_id', 'server_filter', 'server']:
-            value = await self.ask_server_id(ctx)
+        elif option in ['server_id', 'server_filter', 'server']:
+            value = await self.ask_server_id(ctx, author="Editing scoreboard...")
             if value: sb.server_filter = int(value)
 
         else:
-            raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id')
+            raise commands.BadArgument('%s isn\'t a valid option. Available options: name, channel, api_url, api_user, api_pw, scoreboard_url, server_id' % option)
         
         sb.save()
-        ctx.bot.scoreboards[sb_index] = sb
+        ctx.bot.scoreboards.set(sb_index, sb)
         embed = discord.Embed(color=discord.Color(7844437), description=f"New value is {value}")
         embed.set_author(name=f"{option} updated", icon_url="https://cdn.discordapp.com/emojis/809149148356018256.png")
         await ctx.send(embed=embed)
+        await sb.update()
 
 def setup(bot):
     bot.add_cog(ui(bot))
