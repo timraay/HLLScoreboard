@@ -207,13 +207,27 @@ class ui(commands.Cog):
 
     @commands.command(name='create', aliases=['create_sb', 'create_scoreboard', 'add', 'add_sb', 'add_scoreboard'])
     async def create_scoreboard(self, ctx):
+
         name = await self.ask_name(ctx)
+        if name == None: return
+        
         channel_id = await self.ask_channel_id(ctx)
+        if channel_id == None: return
+        
         api_url = await self.ask_api_url(ctx)
+        if api_url == None: return
+        
         api_user = await self.ask_api_user(ctx)
+        if api_url == None: return
+        
         api_pw = await self.ask_api_pw(ctx)
+        if api_pw == None: return
+        
         scoreboard_url = await self.ask_scoreboard_url(ctx)
+        if scoreboard_url == None: return
+        
         server_id = await self.ask_server_id(ctx)
+        if server_id == None: return
 
         scoreboard = await ctx.bot.scoreboards.register(ctx.bot, name, ctx.guild.id, channel_id, 0, api_url, api_user, api_pw, scoreboard_url, server_id)
 
