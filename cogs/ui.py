@@ -42,7 +42,7 @@ class ui(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    async def ask_name(self, ctx, author='Creating new feed... (1/7)'):
+    async def ask_name(self, ctx, author='Creating new scoreboard... (1/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What should the scoreboard's name be?", value="Keep it short. 32 characters max.")
@@ -62,7 +62,7 @@ class ui(commands.Cog):
             elif name.lower() == "cancel": return
             error = validate_name()
         return name
-    async def ask_channel_id(self, ctx, author='Creating new feed... (2/7)'):
+    async def ask_channel_id(self, ctx, author='Creating new scoreboard... (2/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What channel should the scoreboard be in?", value="Must be a text channel the bot can send messages to.")
@@ -86,7 +86,7 @@ class ui(commands.Cog):
             elif channel_id.lower() == "cancel": return
             error, channel_id = await validate_channel_id(channel_id)
         return channel_id
-    async def ask_api_url(self, ctx, author='Creating new feed... (3/7)'):
+    async def ask_api_url(self, ctx, author='Creating new scoreboard... (3/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data through the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
@@ -132,7 +132,7 @@ class ui(commands.Cog):
             if not api_url.startswith('http://') or not api_url.startswith('https://'): api_url = 'http://' + api_url
             error, api_url = await validate_api_url(api_url)
         return api_url
-    async def ask_api_user(self, ctx, author='Creating new feed... (4/7)'):
+    async def ask_api_user(self, ctx, author='Creating new scoreboard... (4/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What username should be used to log in to the C.RCON?", value="This is the username that you would use to log in.")
@@ -153,7 +153,7 @@ class ui(commands.Cog):
             elif api_user.lower() == "cancel": return
             error = validate_api_user()
         return api_user
-    async def ask_api_pw(self, ctx, author='Creating new feed... (5/7)'):
+    async def ask_api_pw(self, ctx, author='Creating new scoreboard... (5/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What password should be used to log in to the C.RCON?", value="This is the password that you would use to log in.")
@@ -174,7 +174,7 @@ class ui(commands.Cog):
             elif api_pw.lower() == "cancel": return
             error = validate_api_pw()
         return api_pw
-    async def ask_scoreboard_url(self, ctx, author='Creating new feed... (6/7)'):
+    async def ask_scoreboard_url(self, ctx, author='Creating new scoreboard... (6/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What link should be used to redirect to the C.RCON's gamescoreboard page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#/gamescoreboard` or `https://<hostname>/#/gamescoreboard`. This value is OPTIONAL, typing \"none\" will leave it empty.")
@@ -197,7 +197,7 @@ class ui(commands.Cog):
             elif scoreboard_url.lower() == "none": scoreboard_url = ""
             error = validate_scoreboard_url()
         return scoreboard_url
-    async def ask_server_id(self, ctx, author='Creating new feed... (7/7)'):
+    async def ask_server_id(self, ctx, author='Creating new scoreboard... (7/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
         embed.add_field(name="What is the server's ID?", value="Required when having multiple servers connected to the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). Check the C.RCON's `.env` file. If only one server is connected this should just be 1.")
