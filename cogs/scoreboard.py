@@ -358,7 +358,7 @@ class scoreboard(commands.Cog):
         for row in res:
             try: await self.bot.scoreboards.register(self.bot, *row)
             except Exception as e:
-                print('Unable to register %s - %s: %s' % (row[0], e.__class__.__name__, e)
+                print('Unable to register %s - %s: %s' % (row[0], e.__class__.__name__, e))
         
         print('Launched at', datetime.now())     
         self.update_scoreboard.add_exception_type(Exception)
