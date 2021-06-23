@@ -1,11 +1,12 @@
 from datetime import timedelta
+from urllib.parse import urlparse
 
-from discord.ext.commands.errors import BadArgument
-from models import DBConnection
 import discord
 from discord.ext import commands
 from utils import ask_message, ask_reaction
 import aiohttp
+import asyncio
+
 
 class ui(commands.Cog):
     def __init__(self, bot):
@@ -88,27 +89,38 @@ class ui(commands.Cog):
     async def ask_api_url(self, ctx, author='Creating new feed... (3/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
-        embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data from the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
+        embed.add_field(name="What is the link to the Community RCON API?", value="I will retrieve my data through the API provided by the [Community RCON](https://github.com/MarechJ/hll_rcon_tool). A valid URL should look like either `http://<ipaddress>:<port>/api/` or `https://<hostname>/api/`.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         api_url = await ask_message(ctx, embed=embed)
         if api_url == None: return
         elif api_url.lower() == "cancel": return
-        if not api_url.endswith('/'): api_url = api_url + '/'
-        if not api_url.endswith('api/'): api_url = api_url + 'api/'
-        if not api_url.startswith('http://') or not api_url.startswith('https://'): api_url = 'http://' + api_url
-        async def validate_api_url():
-            if len(api_url) < 1 or len(api_url) > 200: return f"Invalid length! 200 characters max, you have {len(api_url)}."
+        async def validate_api_url(api_url):
+            if len(api_url) < 1 or len(api_url) > 200:
+                return f"Invalid length! 200 characters max, you have {len(api_url)}.", None
+            url = urlparse(api_url)
+            if not url.scheme:
+                return 'URL has no scheme, must be either http or https.', None
+            url = url._replace(path='/api/')
+            url = url._replace(params='')
+            url = url._replace(query='')
+            url = url._replace(fragment='')
+            api_url = url.geturl()
             try:
                 jar = aiohttp.CookieJar(unsafe=True)
                 timeout = aiohttp.ClientTimeout(total=10)
                 async with aiohttp.ClientSession(cookie_jar=jar, timeout=timeout) as session:
                     async with session.get(api_url+'public_info') as res:
                         res = (await res.json())['result']
+            except aiohttp.ContentTypeError as e:
+                error = f'Webpage returned unexpected data. Likely the URL used ({api_url}) is incorrect.', None
+            except asyncio.TimeoutError as e:
+                error = f'Could not resolve host within 10 seconds. Check if the URL is correct ({api_url}) and the RCON tool is running.', None
             except KeyError:
-                return 'Connected, but received unexpected data'
+                return 'Connected, but received unexpected data', None
             except Exception as e:
-                return e.__class__.__name__ + ": " + str(e)
-        error = await validate_api_url()
+                return e.__class__.__name__ + ": " + str(e), None
+            return None, api_url
+        error, api_url = await validate_api_url(api_url)
         while error is not None:
             embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))
             embed.set_author(name=error)
@@ -118,7 +130,7 @@ class ui(commands.Cog):
             if not api_url.endswith('/'): api_url = api_url + '/'
             if not api_url.endswith('api/'): api_url = api_url + 'api/'
             if not api_url.startswith('http://') or not api_url.startswith('https://'): api_url = 'http://' + api_url
-            error = await validate_api_url()
+            error, api_url = await validate_api_url(api_url)
         return api_url
     async def ask_api_user(self, ctx, author='Creating new feed... (4/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
