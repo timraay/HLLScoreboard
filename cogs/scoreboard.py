@@ -356,7 +356,9 @@ class scoreboard(commands.Cog):
 
         self.bot.scoreboards = ScoreboardList()
         for row in res:
-            await self.bot.scoreboards.register(self.bot, *row)
+            try: await self.bot.scoreboards.register(self.bot, *row)
+            except Exception as e:
+                print('Unable to register %s - %s: %s' % (row[0], e.__class__.__name__, e)
         
         print('Launched at', datetime.now())     
         self.update_scoreboard.add_exception_type(Exception)
@@ -384,7 +386,7 @@ class scoreboard(commands.Cog):
     async def on_guild_remove(self, guild):
         for i, sb in enumerate(self.scoreboards):
             if sb.guild.id == guild.id:
-                sb.delete()
+                await sb.delete()
                 self.scoreboards[i] = None
 
 
