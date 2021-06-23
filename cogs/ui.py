@@ -235,7 +235,7 @@ class ui(commands.Cog):
         if api_url == None: return
         
         api_user = await self.ask_api_user(ctx)
-        if api_url == None: return
+        if api_user == None: return
         
         api_pw = await self.ask_api_pw(ctx)
         if api_pw == None: return
