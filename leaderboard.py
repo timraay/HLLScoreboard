@@ -151,27 +151,3 @@ class leaderboard(commands.Cog):
 
 def setup(bot):
     bot.add_cog(leaderboard(bot))
-
-"""
-http://marech.fr:8040/api/get_historical_logs?limit=999999&log_type=KILL&from=2020-12-30T00:00:00.0
-"""
-
-if __name__ == '__main__':
-    async def test():
-        host = 'http://62.171.172.221:8040'
-        jar = aiohttp.CookieJar(unsafe=True)
-        async with aiohttp.ClientSession(cookie_jar=jar) as session:
-            # Login
-            payload = {'username': 'Abusify', 'password': 'abu2020WTH'}
-            async with session.post(host+'/api/login', json=payload) as res:
-                print("\nURL:", res.url)
-                print("Status:", res.status)
-                print("Response:", await res.text())
-            await asyncio.sleep(1)
-            # Get logs
-            payload = {'limit': 10, 'log_type': 'KILL'}
-            async with session.get(host+'/api/get_historical_logs', params=payload) as res:
-                print("\nURL:", res.url)
-                print("Status:", res.status)
-                print("Response:", await res.json())
-    asyncio.run(test())
