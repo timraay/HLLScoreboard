@@ -177,7 +177,7 @@ class ui(commands.Cog):
     async def ask_scoreboard_url(self, ctx, author='Creating new scoreboard... (6/7)'):
         embed = discord.Embed(color=discord.Color.from_rgb(66, 66, 66))
         embed.set_author(name=author)
-        embed.add_field(name="What link should be used to redirect to the C.RCON's gamescoreboard page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#/gamescoreboard` or `https://<hostname>/#/gamescoreboard`. This value is OPTIONAL, typing \"none\" will leave it empty.")
+        embed.add_field(name="What link should be used to redirect to the C.RCON's live scores page?", value="The [Community RCON](https://github.com/MarechJ/hll_rcon_tool) has a public stats page. A valid URL should look like either `http://<ipaddress>:<port>/#` or `https://<hostname>/#`. This value is OPTIONAL, typing \"none\" will leave it empty.")
         embed.set_footer(text="Type \"cancel\" to cancel the creation process")
         scoreboard_url = await ask_message(ctx, embed=embed)
         if scoreboard_url == None: return
@@ -186,7 +186,6 @@ class ui(commands.Cog):
         def validate_scoreboard_url():
             if len(scoreboard_url) == 0: return
             elif len(scoreboard_url) > 200: return f"Invalid length! 200 characters max, you have {len(scoreboard_url)}."
-            elif '#/gamescoreboard' not in scoreboard_url: return "URL doesn't contain \"#/gamescoreboard\""
         error = validate_scoreboard_url()
         while error is not None:
             embed = discord.Embed(color=discord.Color.from_rgb(105, 105, 105))

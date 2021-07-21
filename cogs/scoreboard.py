@@ -202,13 +202,13 @@ class ScoreboardInstance:
         # Create embed
         match_duration = int((datetime.utcnow() - self.match_start).total_seconds() / 60)
         embed = discord.Embed(description=output)
-        if self.scoreboard_url: embed.description += f'\n[\> Click here for past rounds]({self.scoreboard_url})'
         if not self._data:
             # Cool ASCII art when no data
             if match_duration >= 15 and match_duration <= 30:
                 embed.description = ASCII_ART.format(self.name[:21])
             else:
                 embed.description = "`{: <51}\n{: <51}\n{: <51}`".format('','        There is no data to be displayed :(','')
+        if self.scoreboard_url: embed.description += f'\n[\> Click here for more stats]({self.scoreboard_url})'
         embed.set_author(icon_url=EMBED_ICON, name=self.name)
 
         # Set embed footer
