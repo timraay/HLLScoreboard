@@ -32,7 +32,7 @@ class _util(commands.Cog):
     @commands.command(description="Get help with any of my commands", usage="s!help")
     async def help(self, ctx):
         embed = discord.Embed()
-        embed.set_author(name='HLL Scoreboard - Help', icon_url=ctx.bot.user.avatar_url, url='https://github.com/timraay/HLLScoreboard')
+        embed.set_author(name='HLL Scoreboard - Help', icon_url=ctx.bot.user.avatar.url, url='https://github.com/timraay/HLLScoreboard')
         oauth = discord.utils.oauth_url(self.bot.user.id, permissions=discord.Permissions(permissions=8))
         embed.description = f"Hello, I am HLL Scoreboard! I display live statistics from ongoing Hell Let Loose matches directly into your server.\n\nFor questions, feedback, bugs, and source code [visit my Github page](https://github.com/timraay/HLLScoreboard). To invite me, [click here]({oauth})."
         embed.add_field(name='✏️ `s!create`', value='Create a new scoreboard')
@@ -40,7 +40,7 @@ class _util(commands.Cog):
         embed.add_field(name='📦 `s!invite`', value='Generate my invite link')
         embed.add_field(name='🔧 `s!edit <message> <option>`', value='Edit a property of an existing scoreboard')
         embed.add_field(name='🗑️ `s!delete <message>`', value='Get rid of an existing scoreboard')
-        embed.set_footer(text='By Abusify - Made with love ❤️')
+        embed.set_footer(text='By Abu - ko-fi.com/abusify ❤️')
         await ctx.send(embed=embed)
 
     @commands.command()

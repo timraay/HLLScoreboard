@@ -5,7 +5,7 @@ from discord.ext import commands
 import os
 from pathlib import Path
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(intents=intents, command_prefix=("s!"), case_insensitive=True)
