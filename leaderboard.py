@@ -57,7 +57,7 @@ class LeaderboardInstance:
             await session.post(self.url+LOGIN_ENDPOINT, json=payload)
             # Get logs
             payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(last_update())}
-            async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
+            async with session.post(self.url+GET_LOGS_ENDPOINT, json=payload) as res:
                 logs = (await res.json())['result']
 
         # Parse logs
