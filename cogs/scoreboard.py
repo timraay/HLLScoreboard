@@ -384,7 +384,7 @@ class scoreboard(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        for i, sb in enumerate(self.scoreboards):
+        for i, sb in enumerate(self.bot.scoreboards):
             if sb.guild.id == guild.id:
                 await sb.delete()
                 self.scoreboards[i] = None
