@@ -144,7 +144,7 @@ class ScoreboardInstance:
                     except KeyError: self.current_map = current_map
                 
                 # Get logs
-                payload = {'limit': 999999, 'log_type': 'KILL', 'from': str(self.match_start), 'server_filter': self.server_filter}
+                payload = {'limit': 999999, 'log_type': 'KILL', 'action': 'KILL', 'from': str(self.match_start), 'from_': str(self.match_start), 'server_filter': self.server_filter}
                 if self.match_end: payload['till'] = str(self.match_end)
                 async with session.get(self.url+GET_LOGS_ENDPOINT, params=payload) as res:
                     raw_data = await res.json()
