@@ -160,7 +160,7 @@ class ScoreboardInstance:
         # Parse logs
         data = dict()
         for log in logs:
-            killer = log['player_name']
+            killer = log['player_name'] if 'player_name' in log else log['player1_name']
             victim = log['player2_name']
 
             if log['type'] == 'KILL':
